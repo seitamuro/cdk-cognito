@@ -1,16 +1,35 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import * as cdk from "aws-cdk-lib";
+import * as cognito from "aws-cdk-lib/aws-cognito";
+import { Construct } from "constructs";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class CdkUserIdPoolStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const userPool = new cognito.UserPool(this, "UserPool", {
+      selfSignUpEnabled: true,
+      autoVerify: { email: true },
+      signInAliases: { email: true },
+    });
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkUserIdPoolQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
+      userPool: userPool,
+      generateSecret: false,
+    });
+
+    const identityPool = new cognito.CfnIdentityPool(this, "IdentityPool", {
+      allowUnauthenticatedIdentities: false,
+      cognitoIdentityProviders: [
+        {
+          clientId: userPoolClient.userPoolClientId,
+          providerName: userPool.userPoolProviderName,
+        },
+      ],
+    });
+
+    new cdk.CfnOutput(this, "IdentityPoolId", {
+      value: identityPool.ref,
+    });
   }
 }
