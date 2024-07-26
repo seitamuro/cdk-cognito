@@ -24,12 +24,14 @@ export class CdkUserIdPoolStack extends cdk.Stack {
     const createUserFunction = new NodejsFunction(this, "CreateUserFunction", {
       entry: "lambda/create_user.ts",
       handler: "handler",
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+      },
     });
-    /*const cognitoPolicy = new iam.PolicyStatement({
-      actions: ["cognito-idp:AdminCreateUser"],
-      resources: [userPool.userPoolArn],
-    });
-    createUserFunction.addToRolePolicy(cognitoPolicy);*/
     userPool.grant(createUserFunction, "cognito-idp:AdminCreateUser");
+
+    new cdk.CfnOutput(this, "UserPoolId", {
+      value: userPool.userPoolId,
+    });
   }
 }

@@ -15,7 +15,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<any> => {
   console.log("parse is successful");
 
   const command = new AdminCreateUserCommand({
-    UserPoolId: userPoolId,
+    UserPoolId: process.env.USER_POOL_ID,
     Username: email,
     UserAttributes: [
       //{ Name: "name", Value: username },
