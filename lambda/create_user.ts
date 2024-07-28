@@ -11,12 +11,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<any> => {
   console.log("body: ", event.body);
   console.log("parse: ", JSON.parse(event.body || "{}"));
 
-  const { userPoolId, username, email } = JSON.parse(event.body || "{}");
+  const { username, email } = JSON.parse(event.body || "{}");
   console.log("parse is successful");
 
   const command = new AdminCreateUserCommand({
     UserPoolId: process.env.USER_POOL_ID,
-    Username: email,
+    Username: username,
     UserAttributes: [
       //{ Name: "name", Value: username },
       { Name: "email", Value: email },

@@ -12,7 +12,7 @@ export class CdkUserIdPoolStack extends cdk.Stack {
     const userPool = new cognito.UserPool(this, "UserPool", {
       userPoolName: "MyUserPool",
       selfSignUpEnabled: true,
-      signInAliases: { email: true },
+      signInAliases: { username: true, email: true },
     });
 
     // ユーザープールクライアントの作成
@@ -29,6 +29,32 @@ export class CdkUserIdPoolStack extends cdk.Stack {
       },
     });
     userPool.grant(createUserFunction, "cognito-idp:AdminCreateUser");
+
+    const loginUserFunction = new NodejsFunction(this, "LoginUserFunction", {
+      entry: "lambda/login_user.ts",
+      handler: "handler",
+      environment: {
+        USER_POOL_ID: userPool.userPoolId,
+        USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
+      },
+      timeout: cdk.Duration.seconds(30),
+    });
+    userPool.grant(loginUserFunction, "cognito-idp:AdminInitiateAuth");
+
+    const confirmUserFunction = new NodejsFunction(
+      this,
+      "ConfirmUserFunction",
+      {
+        entry: "lambda/confirm_user.ts",
+        handler: "handler",
+        environment: {
+          USER_POOL_ID: userPool.userPoolId,
+          CLIENT_ID: userPoolClient.userPoolClientId,
+        },
+        timeout: cdk.Duration.seconds(30),
+      }
+    );
+    userPool.grant(confirmUserFunction, "cognito-idp:AdminGetUser");
 
     new cdk.CfnOutput(this, "UserPoolId", {
       value: userPool.userPoolId,
